@@ -1,0 +1,9 @@
+问题记录
+
+1. AtomicIntegerT类的 addAndGet(x)函数 是原子操作吗？
+
+"getAndAdd(x) + x"不是原子操作，但其达到了原子操作的目的。
+首先，getAndAdd(x)是原子操作，确保 "value_ += x" 的原子性，然后返回的是旧值。
+随后返回 [旧值 + x]，符合addAndGet()的意图。
+
+但是，需要说明的是，该函数的返回值并不代表这 value_ 的最新值，这是容易理解的。
