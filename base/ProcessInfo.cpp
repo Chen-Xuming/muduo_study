@@ -31,7 +31,7 @@ namespace muduo {
         /*
          *      for getting all threads(tid)
          */
-        __thread std::vector<pid_t> *t_pids = NULL;
+        __thread std::vector<pid_t> *t_pids = nullptr;
         int taskDirFilter(const struct dirent *d) {
             if (::isdigit(d->d_name[0])) {
                 t_pids->push_back(atoi(d->d_name));
@@ -40,9 +40,9 @@ namespace muduo {
         }
 
         int scanDir(const char *dirpath, int (*filter)(const struct dirent *)) {
-            struct dirent **namelist = NULL;
+            struct dirent **namelist = nullptr;
             int result = ::scandir(dirpath, &namelist, filter, alphasort);
-            assert(namelist == NULL);
+            assert(namelist == nullptr);
             return result;
         }
 

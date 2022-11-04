@@ -25,5 +25,6 @@ set(CXX_FLAGS
         )
 
 add_subdirectory(base)
+add_subdirectory(net)
 
 add_executable(mymuduo main.cpp)
