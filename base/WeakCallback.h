@@ -52,10 +52,10 @@ namespace muduo{
     /*
      *   const成员函数作为回调函数
      */
-    template<typename CLASS, typename... ARGS>
-    WeakCallBack<CLASS, ARGS...> makeWeakCallback(const std::shared_ptr<CLASS> &object,
-                                                  void (CLASS::*function)(ARGS...) const) {
-        return WeakCallback<CLASS, ARGS...>(object, function);
+    template<class CLASS, class ...Args>
+    WeakCallBack<CLASS, Args...> makeWeakCallback(const std::shared_ptr<CLASS> &object,
+                                                  void (CLASS::*function)(Args...) const) {
+        return WeakCallBack<CLASS, Args...>(object, function);
     }
 }
 

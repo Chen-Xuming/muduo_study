@@ -10,6 +10,7 @@
 #include "../base/Logging.h"
 #include "Timer.h"
 #include "TimerId.h"
+#include "EventLoop.h"
 
 #include <sys/timerfd.h>
 #include <unistd.h>
@@ -105,7 +106,9 @@ TimerQueue::~TimerQueue() {
  */
 TimerId TimerQueue::addTimer(TimerCallback cb, Timestamp when, double interval) {
     Timer *timer = new Timer(std::move(cb), when, interval);
-//    loop_->runInLoop(std::bind());
+    loop_->runInLoop(
+            std::bind(&TimerQueue::addTimerInLoop, this, timer));
+    return TimerId(timer, timer->sequence());
 }
 
 void TimerQueue::addTimerInLoop(Timer *timer) {
