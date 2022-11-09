@@ -4,15 +4,12 @@
 
 #include "Timer.h"
 
-using namespace muduo;
-using namespace muduo::net;
+muduo::AtomicInt64 muduo::net::Timer::s_numCreated_;
 
-AtomicInt64 Timer::s_numCreated_;
-
-void Timer::restart(Timestamp now) {
-    if (repeat_) {
+void muduo::net::Timer::restart(Timestamp now) {
+    if(repeat_){
         expiration_ = addTime(now, interval_);
-    } else {
+    }else{
         expiration_ = Timestamp::invalid();
     }
 }

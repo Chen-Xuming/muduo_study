@@ -2,84 +2,76 @@
 // Created by chen on 2022/11/1.
 //
 
+/*
+ *      定时器
+ *
+ *      维护一个timerfd和多个timer，当timerfd触发可读事件时取出到期的（expired）timer，并调用对应的定时回调
+ *
+ */
+
 #ifndef MYMUDUO_TIMERQUEUE_H
 #define MYMUDUO_TIMERQUEUE_H
-
-#include <set>
-#include <vector>
 
 #include "../base/Mutex.h"
 #include "../base/Timestamp.h"
 #include "Callbacks.h"
 #include "Channel.h"
 
-namespace muduo {
-    namespace net {
+#include <set>
+#include <vector>
 
+namespace muduo{
+    namespace net{
         class EventLoop;
-
         class Timer;
-
         class TimerId;
 
-        ///
-        /// A best efforts timer queue.
-        /// No guarantee that the callback will be on time.
-        ///
-        class TimerQueue : noncopyable {
+        class TimerQueue: noncopyable{
         public:
             explicit TimerQueue(EventLoop *loop);
-
             ~TimerQueue();
 
-            ///
-            /// Schedules the callback to be run at given time,
-            /// repeats if @c interval > 0.0.
-            ///
-            /// Must be thread safe. Usually be called from other threads.
-            TimerId addTimer(TimerCallback cb,
-                             Timestamp when,
-                             double interval);
-
+            TimerId addTimer(TimerCallback cb, Timestamp when, double interval);
             void cancel(TimerId timerId);
 
         private:
 
-            // FIXME: use unique_ptr<Timer> instead of raw pointers.
-            // This requires heterogeneous comparison lookup (N3465) from C++14
-            // so that we can find an T* in a set<unique_ptr<T>>.
-            typedef std::pair<Timestamp, Timer *> Entry;
-            typedef std::set<Entry> TimerList;
-            typedef std::pair<Timer *, int64_t> ActiveTimer;
-            typedef std::set<ActiveTimer> ActiveTimerSet;
+            /*
+             *      1. 为什么不用 std::map<Timestamp, Timer*> ?
+             *         因为 Timerstamp是可以相同的
+             *      2. ActiveTimerSet保存着和TimerList保存着一样的数据。
+             *         但TimerList按照定时时间排序，ActiveTimerSet按照Timer内存地址排序
+             */
+            using Entry = std::pair<Timestamp, Timer *>;    // Timestamp是定时时间
+            using TimerList = std::set<Entry>;
+            using ActiveTimer = std::pair<Timer*, int64_t>;
+            using ActiveTimerSet = std::set<ActiveTimer>;
 
             void addTimerInLoop(Timer *timer);
-
             void cancelInLoop(TimerId timerId);
 
-            // called when timerfd alarms
-            void handleRead();
+            void handleRead();      // timerfd触发时调用
 
-            // move out all expired timers
+            // 获得已到期的Timer
             std::vector<Entry> getExpired(Timestamp now);
 
             void reset(const std::vector<Entry> &expired, Timestamp now);
 
             bool insert(Timer *timer);
 
+        private:
             EventLoop *loop_;
             const int timerfd_;
             Channel timerfdChannel_;
-            // Timer list sorted by expiration
             TimerList timers_;
 
-            // for cancel()
-            ActiveTimerSet activeTimers_;
-            bool callingExpiredTimers_; /* atomic */
-            ActiveTimerSet cancelingTimers_;
+            // 这三个数据成员是为取消（cancel）timer而设计的
+            // 见 cancelInLoop() 和 handlerRead() 的注释
+            ActiveTimerSet activeTimers_;   // 存储着和timers_一样的内容（顺序不同）。是目前有效的timer
+            bool callingExpiredTimers_;
+            ActiveTimerSet cancelingTimers_;   // 保存的是被取消的timer
         };
-
-    }  // namespace net
-}  // namespace muduo
+    }
+}
 
 #endif //MYMUDUO_TIMERQUEUE_H

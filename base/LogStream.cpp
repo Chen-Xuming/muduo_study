@@ -340,20 +340,6 @@ LogStream& LogStream::operator<<(const Buffer &v) {
     return *this;
 }
 
-LogStream& LogStream::operator<<(const void* p)
-{
-    uintptr_t v = reinterpret_cast<uintptr_t>(p);
-    if (buffer_.avail() >= kMaxNumericSize)
-    {
-        char* buf = buffer_.current();
-        buf[0] = '0';
-        buf[1] = 'x';
-        size_t len = convertHex(buf+2, v);
-        buffer_.add(len+2);
-    }
-    return *this;
-}
-
 LogStream& LogStream::operator<<(bool v) {
     buffer_.append(v ? "1" : "0", 1);
     return *this;

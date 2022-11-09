@@ -1,0 +1,8 @@
+//
+// Created by chen on 2022/10/22.
+//
+
+#ifndef MYMUDUO_STRINGPIECEC_H
+#define MYMUDUO_STRINGPIECEC_H
+
+#endif //MYMUDUO_STRINGPIECEC_H

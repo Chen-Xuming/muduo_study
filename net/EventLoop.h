@@ -139,24 +139,25 @@ namespace muduo {
             bool looping_; /* atomic */
             std::atomic<bool> quit_;
             bool eventHandling_; /* atomic */
-            bool callingPendingFunctors_; /* atomic */
             int64_t iteration_;
             const pid_t threadId_;
             Timestamp pollReturnTime_;
             std::unique_ptr<Poller> poller_;
             std::unique_ptr<TimerQueue> timerQueue_;
+
+            // 为queueInLoop()而设计
             int wakeupFd_;
-            // unlike in TimerQueue, which is an internal class,
-            // we don't expose Channel to client.
             std::unique_ptr<Channel> wakeupChannel_;
-            boost::any context_;
+            bool callingPendingFunctors_; /* atomic */
+            std::vector<Functor> pendingFunctors_;
+
+            boost::any context_;    // 用来存储用户自定义任意变量
 
             // scratch variables
-            ChannelList activeChannels_;
-            Channel *currentActiveChannel_;
+            ChannelList activeChannels_;        // poller 返回的事件
+            Channel *currentActiveChannel_;     // 当前处理的事件
 
             mutable MutexLock mutex_;
-            std::vector<Functor> pendingFunctors_;
         };
 
     }  // namespace net

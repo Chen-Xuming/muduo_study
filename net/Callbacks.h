@@ -17,69 +17,78 @@
 #define MUDUO_NET_CALLBACKS_H
 
 #include "../base/Timestamp.h"
-
 #include <functional>
 #include <memory>
 
-namespace muduo {
-
+namespace muduo{
     using std::placeholders::_1;
     using std::placeholders::_2;
     using std::placeholders::_3;
 
-    // should really belong to base/Types.h, but <memory> is not included there.
-
-    template<typename T>
-    inline T *get_pointer(const std::shared_ptr<T> &ptr) {
+    /*
+     *   获取shared_ptr所指对象的指针
+     */
+    template<class T>
+    inline T *get_pointer(const std::shared_ptr<T> &ptr){
         return ptr.get();
     }
 
-    template<typename T>
-    inline T *get_pointer(const std::unique_ptr<T> &ptr) {
+    /*
+     *  获取unique_ptr所指对象的指针
+     */
+    template<class T>
+    inline T *get_pointer(const std::unique_ptr<T> &ptr){
         return ptr.get();
     }
 
-    // Adapted from google-protobuf stubs/common.h
-    // see License in muduo/base/Types.h
-    template<typename To, typename From>
-    inline ::std::shared_ptr<To> down_pointer_cast(const ::std::shared_ptr<From> &f) {
-        if (false) {
-            implicit_cast<From *, To *>(0);
+    /*
+     *   智能指针向上转换（static_pointer_cast是static_cast的智能指针版本）
+     *   使用implicit_cast禁用向下转换
+     */
+    template<class To, class From>
+    inline std::shared_ptr<To> down_pointer_cast(const std::shared_ptr<From> &f){
+        if(false){  // 仅编译期检查
+            implicit_cast<From*, To*>(0);
         }
-
-#ifndef NDEBUG
-        assert(f == NULL || dynamic_cast<To *>(get_pointer(f)) != NULL);
-#endif
-        return ::std::static_pointer_cast<To>(f);
+        return std::static_pointer_cast<To>(f);
     }
 
-    namespace net {
-
-        // All client visible callbacks go here.
-
+    /// ------------ 一些回调 ----------------
+    namespace net{
         class Buffer;
-
         class TcpConnection;
 
-        typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;
-        typedef std::function<void()> TimerCallback;
-        typedef std::function<void(const TcpConnectionPtr &)> ConnectionCallback;
-        typedef std::function<void(const TcpConnectionPtr &)> CloseCallback;
-        typedef std::function<void(const TcpConnectionPtr &)> WriteCompleteCallback;
-        typedef std::function<void(const TcpConnectionPtr &, size_t)> HighWaterMarkCallback;
+        using TcpConnectionPtr = std::shared_ptr<TcpConnection>;
+        using TimerCallback = std::function<void()>;
+        using ConnectionCallback = std::function<void(const TcpConnectionPtr&)>;
+        using CloseCallback = std::function<void(TcpConnectionPtr&)>;
+        using WriteCompleteCallback = std::function<void(TcpConnectionPtr&)>;
+        using HighWaterMarkCallback = std::function<void(const TcpConnectionPtr &, size_t)>;
 
-        // the data has been read to (buf, len)
-        typedef std::function<void(const TcpConnectionPtr &,
-                                   Buffer *,
-                                   Timestamp)> MessageCallback;     // 收到信息后的回调
+        // 数据已经读到buffer中后的回调
+        using MessageCallback = std::function<void(const TcpConnectionPtr&,
+                                                   Buffer*,
+                                                   Timestamp)>;
 
         void defaultConnectionCallback(const TcpConnectionPtr &conn);
-
-        void defaultMessageCallback(const TcpConnectionPtr &conn,
-                                    Buffer *buffer,
-                                    Timestamp receiveTime);
-
-    }  // namespace net
-}  // namespace muduo
+        void defaultMessageCallback(const TcpConnectionPtr &conn, Buffer *buffer, Timestamp receiveTime);
+    }
+}
 
 #endif  // MUDUO_NET_CALLBACKS_H
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

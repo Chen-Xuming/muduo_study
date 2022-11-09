@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/date_test.dir/Date_test.cpp.o  -o date_test  -lbase 
